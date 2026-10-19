@@ -138,7 +138,12 @@ pkgbuild --root "$STAGE" --identifier "$PKGID" --version "$VERSION" \
          "$DIST/SCX3405-component.pkg"
 
 echo "== 8. product archive"
-sed "s/version=\"[0-9.]*\"/version=\"$VERSION\"/g" "$HERE/Distribution.xml" > "$DIST/Distribution.xml"
+# Bake the version into the component pkg-ref only — a bare version="..." match
+# would also rewrite the version in the XML declaration on line 1.
+sed -E 's#(<pkg-ref[^>]*version=")[^"]*#\1'"$VERSION"'#' "$HERE/Distribution.xml" > "$DIST/Distribution.xml"
+if command -v xmllint >/dev/null 2>&1; then
+  xmllint --noout "$DIST/Distribution.xml"
+fi
 productbuild --distribution "$DIST/Distribution.xml" --package-path "$DIST" \
              "$DIST/Install SCX3405.pkg"
 
