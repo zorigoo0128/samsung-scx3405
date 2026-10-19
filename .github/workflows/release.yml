@@ -1,0 +1,63 @@
+name: Build installer
+
+# Builds SCX3405-Full-Installer.dmg on an Apple Silicon runner.
+# On a version tag (v*) the DMG is attached to a GitHub Release.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  HOMEBREW_NO_AUTO_UPDATE: 1
+  HOMEBREW_NO_INSTALL_CLEANUP: 1
+
+jobs:
+  dmg:
+    name: Build DMG
+    runs-on: macos-14          # Apple Silicon (arm64)
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # so the build can read the tag for the version
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          uname -m
+          swiftc --version | head -1
+
+      - name: Install SANE (source of the bundled scanner payload)
+        run: brew install sane-backends
+
+      - name: Build the installer
+        run: packaging/build-package.sh
+
+      - name: Checksums
+        run: |
+          cd dist
+          shasum -a 256 SCX3405-Full-Installer.dmg > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SCX3405-Full-Installer
+          path: |
+            dist/SCX3405-Full-Installer.dmg
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "SCX-3405 driver ${GITHUB_REF_NAME}" \
+            --generate-notes \
+            dist/SCX3405-Full-Installer.dmg \
+            dist/SHA256SUMS.txt

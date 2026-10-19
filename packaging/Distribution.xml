@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+    <title>Samsung SCX-3405 Driver</title>
+    <organization>com.samsung-scx3405</organization>
+    <options customize="never" require-scripts="false" hostArchitectures="arm64"/>
+    <allowed-os-versions>
+        <os-version min="26.0"/>
+    </allowed-os-versions>
+    <domains enable_localSystem="true" enable_currentUserHome="false" enable_anywhere="false"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="scx3405"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="scx3405" visible="false" title="SCX-3405 Driver">
+        <pkg-ref id="com.samsung-scx3405.pkg"/>
+    </choice>
+    <pkg-ref id="com.samsung-scx3405.pkg" version="1.0" onConclusion="none">SCX3405-component.pkg</pkg-ref>
+</installer-gui-script>

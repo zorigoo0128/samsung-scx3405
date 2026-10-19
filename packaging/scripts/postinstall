@@ -1,0 +1,32 @@
+#!/bin/bash
+# SCX3405 postinstall: fix permissions and (re)create the print queue.
+# Best effort: never fails the install, but reports everything it did.
+set -u
+
+ROOT=/Library/Printers/SCX3405
+PPD="$ROOT/SCX-3400 (SpliX).ppd"
+QUEUE=SCX3405
+
+echo "[scx3405] fixing permissions"
+chmod -R a+rX "$ROOT" 2>/dev/null
+chmod -R a+rX /Library/Printers/Splix 2>/dev/null
+chmod 755 /usr/local/bin/scan-photo 2>/dev/null
+
+echo "[scx3405] detecting printer USB URI"
+URI="$(lpinfo -v 2>/dev/null \
+        | awk '$1 == "direct" && $2 ~ /^usb:\/\// { print $2 }' \
+        | grep -i -E 'SCX-3400|SCX3400|Samsung' | head -1)"
+
+if [ -z "$URI" ]; then
+  # Known serial of the reference unit; used only when live detection fails
+  # (e.g. the printer is switched off during installation).
+  URI='usb://Samsung/SCX-3400%20Series?serial=Z70KB8KD7D009NP'
+  echo "[scx3405] no live USB printer found, using known serial"
+fi
+
+echo "[scx3405] creating queue $QUEUE -> $URI"
+lpadmin -p "$QUEUE" -E -v "$URI" -P "$PPD" \
+    -D "Samsung SCX-3405 (SpliX)" -L "USB" -o printer-is-shared=false
+echo "[scx3405] lpadmin exit=$?"
+
+exit 0

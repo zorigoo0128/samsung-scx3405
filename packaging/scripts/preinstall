@@ -1,0 +1,17 @@
+#!/bin/bash
+# SCX3405 preinstall: refuse to install anywhere the payload cannot run.
+set -u
+
+if [ "$(uname -m)" != "arm64" ]; then
+  echo "SCX-3405 driver: this package requires an Apple Silicon Mac." >&2
+  exit 1
+fi
+
+ver="$(sw_vers -productVersion 2>/dev/null)"
+major="${ver%%.*}"
+if [ -n "$major" ] && [ "$major" -lt 26 ] 2>/dev/null; then
+  echo "SCX-3405 driver: this package requires macOS 26 or later (found $ver)." >&2
+  exit 1
+fi
+
+exit 0

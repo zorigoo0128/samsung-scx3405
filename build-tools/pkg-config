@@ -1,0 +1,12 @@
+#!/bin/sh
+# Build-time pkg-config shim for SpliX on macOS.
+# Compiles against CUPS headers found in the active SDK (default include path),
+# links ONLY against the system CUPS libraries (dyld shared cache via SDK .tbd
+# stubs) so the produced filters have zero Homebrew runtime dependencies.
+case "$*" in
+  "--cflags cups"*)                    echo "" ;;
+  "--libs cups"*)                      echo "-lcups -lcupsimage" ;;
+  "--variable=cups_serverbin cups"*)   echo "/usr/libexec/cups" ;;
+  "--variable=cups_datadir cups"*)     echo "/usr/share/cups" ;;
+  *)                                   exit 1 ;;
+esac

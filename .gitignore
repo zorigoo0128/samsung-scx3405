@@ -1,0 +1,12 @@
+# Build output
+/dist/
+/packaging/payload/
+/third_party/splix/optimized/
+/third_party/splix/.defs.mk
+
+# macOS
+.DS_Store
+
+# Editors
+*.swp
+*~

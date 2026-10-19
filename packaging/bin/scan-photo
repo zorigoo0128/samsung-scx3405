@@ -1,0 +1,18 @@
+#!/bin/bash
+# scan-photo [output.png]
+# One-shot colour scan (600 dpi, lossless) from the SCX-3405 flatbed.
+set -u
+
+SANE=/Library/Printers/SCX3405/sane
+OUT="${1:-$HOME/Desktop/Scan $(date +%Y-%m-%d\ %H%M%S).png}"
+
+DEV="$("$SANE/bin/scanimage" -L 2>/dev/null | sed -n "s/^device \`\([^']*\)'.*/\1/p" | head -1)"
+if [ -z "$DEV" ]; then
+  echo "No SCX-3405 scanner found. Check the USB cable and that the printer is on." >&2
+  exit 1
+fi
+
+"$SANE/bin/scanimage" -d "$DEV" --format=png --mode Color \
+    --resolution 600 --jpeg=no -p -o "$OUT" || exit 1
+
+echo "Saved $OUT"
